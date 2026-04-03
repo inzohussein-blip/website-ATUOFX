@@ -24,7 +24,7 @@ export function Navbar() {
     setError("");
     const { error } = await signIn(email, password);
     if (error) {
-      setError(error);
+      setError(error.message);
     } else {
       setIsLoginOpen(false);
       setEmail("");
