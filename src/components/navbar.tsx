@@ -37,7 +37,7 @@ export function Navbar() {
     setError("");
     const { error } = await signUp(email, password, fullName);
     if (error) {
-      setError(error);
+      setError(error?.message || "An error occurred");
     } else {
       setIsSignUpOpen(false);
       setEmail("");
