@@ -4,9 +4,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { getSupabaseClient } from '@/lib/supabase';
 import { Broker } from '@/types';
 
-export function useBrokers() {
-  const [brokers, setBrokers] = useState<Broker[]>([]);
-  const [loading, setLoading] = useState(true);
+export function useBrokers(opts?: { initialBrokers?: Broker[] }) {
+  const initial = opts?.initialBrokers ?? [];
+  const [brokers, setBrokers] = useState<Broker[]>(initial);
+  const [loading, setLoading] = useState(initial.length === 0);
   const [error, setError] = useState<string | null>(null);
 
   const fetchBrokers = useCallback(async () => {
@@ -38,8 +39,8 @@ export function useBrokers() {
   }, []);
 
   useEffect(() => {
-    fetchBrokers();
-  }, [fetchBrokers]);
+    if (initial.length === 0) fetchBrokers();
+  }, [fetchBrokers, initial.length]);
 
   const getBrokerById = useCallback(async (id: string) => {
     try {
