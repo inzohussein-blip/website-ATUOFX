@@ -7,12 +7,11 @@ import { Button } from "@/components/ui/button";
 import { BrokerCard } from "@/components/broker-card";
 import { useBrokers } from "@/hooks/useBrokers";
 
-export function BrokersList() {
+export function BrokersList({ initialBrokers = [] }: { initialBrokers?: any[] }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"rating" | "reviews" | "newest">("rating");
-  const { brokers, loading, error } = useBrokers();
+  const { brokers, loading, error } = useBrokers({ initialBrokers });
 
-  // Filter and sort brokers
   const filteredBrokers = brokers
     .filter((broker) =>
       broker.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -60,22 +59,17 @@ export function BrokersList() {
   return (
     <section id="brokers" className="py-20 bg-muted/30">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full text-sm mb-4">
             <TrendingUp className="w-4 h-4" />
             شركات التداول الموثوقة
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            اختر الوسيط الأنسب لك
-          </h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">اختر الوسيط الأنسب لك</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            قارن بين أفضل شركات الفوركس المرخصة واقرأ تقييمات المتداولين الحقيقيين
-            قبل اتخاذ قرارك
+            قارن بين أفضل شركات الفوركس المرخصة واقرأ تقييمات المتداولين الحقيقيين قبل اتخاذ قرارك
           </p>
         </div>
 
-        {/* Filters */}
         <div className="flex flex-col md:flex-row gap-4 mb-8">
           <div className="relative flex-1">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -86,7 +80,7 @@ export function BrokersList() {
               className="pr-10"
             />
           </div>
-          
+
           <div className="flex gap-2">
             <Button
               variant={sortBy === "rating" ? "default" : "outline"}
@@ -107,7 +101,6 @@ export function BrokersList() {
           </div>
         </div>
 
-        {/* Stats Bar */}
         <div className="flex flex-wrap items-center justify-center gap-6 mb-8 p-4 bg-white rounded-lg shadow-sm border">
           <div className="flex items-center gap-2">
             <Shield className="w-5 h-5 text-green-500" />
@@ -124,14 +117,11 @@ export function BrokersList() {
           <div className="flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-blue-500" />
             <span className="text-sm">
-              متوسط التقييم: <strong>
-                {(brokers.reduce((acc, b) => acc + (b.rating || 0), 0) / brokers.length).toFixed(1)}
-              </strong>
+              متوسط التقييم: <strong>{(brokers.reduce((acc, b) => acc + (b.rating || 0), 0) / brokers.length).toFixed(1)}</strong>
             </span>
           </div>
         </div>
 
-        {/* Brokers Grid */}
         {filteredBrokers.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredBrokers.map((broker) => (
@@ -144,9 +134,7 @@ export function BrokersList() {
               <Search className="w-8 h-8 text-muted-foreground" />
             </div>
             <h3 className="text-lg font-semibold mb-2">لا توجد نتائج</h3>
-            <p className="text-muted-foreground">
-              لم نجد أي شركة تطابق بحثك. جرب كلمات مختلفة.
-            </p>
+            <p className="text-muted-foreground">لم نجد أي شركة تطابق بحثك. جرب كلمات مختلفة.</p>
           </div>
         )}
       </div>
