@@ -1,34 +1,47 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Search, Filter, TrendingUp, Star, Shield } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { BrokerCard } from "@/components/broker-card";
 import { useBrokers } from "@/hooks/useBrokers";
 
+const INITIAL_VISIBLE = 9;
+const LOAD_MORE_STEP = 9;
+
 export function BrokersList({ initialBrokers = [] }: { initialBrokers?: any[] }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"rating" | "reviews" | "newest">("rating");
+  const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
   const { brokers, loading, error } = useBrokers({ initialBrokers });
 
-  const filteredBrokers = brokers
-    .filter((broker) =>
-      broker.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      broker.description?.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-    .sort((a, b) => {
-      switch (sortBy) {
-        case "rating":
-          return (b.rating || 0) - (a.rating || 0);
-        case "reviews":
-          return (b.review_count || 0) - (a.review_count || 0);
-        case "newest":
-          return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
-        default:
-          return 0;
-      }
-    });
+  const filteredBrokers = useMemo(() => {
+    return brokers
+      .filter((broker) =>
+        broker.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        broker.description?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+      .sort((a, b) => {
+        switch (sortBy) {
+          case "rating":
+            return (b.rating || 0) - (a.rating || 0);
+          case "reviews":
+            return (b.review_count || 0) - (a.review_count || 0);
+          case "newest":
+            return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+          default:
+            return 0;
+        }
+      });
+  }, [brokers, searchQuery, sortBy]);
+
+  useEffect(() => {
+    setVisibleCount(INITIAL_VISIBLE);
+  }, [searchQuery, sortBy]);
+
+  const visibleBrokers = filteredBrokers.slice(0, visibleCount);
+  const remainingCount = Math.max(0, filteredBrokers.length - visibleBrokers.length);
 
   if (loading) {
     return (
@@ -59,6 +72,7 @@ export function BrokersList({ initialBrokers = [] }: { initialBrokers?: any[] })
   return (
     <section id="brokers" className="py-20 bg-muted/30">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Section Header */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full text-sm mb-4">
             <TrendingUp className="w-4 h-4" />
@@ -70,6 +84,7 @@ export function BrokersList({ initialBrokers = [] }: { initialBrokers?: any[] })
           </p>
         </div>
 
+        {/* Filters */}
         <div className="flex flex-col md:flex-row gap-4 mb-8">
           <div className="relative flex-1">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -101,6 +116,7 @@ export function BrokersList({ initialBrokers = [] }: { initialBrokers?: any[] })
           </div>
         </div>
 
+        {/* Stats Bar */}
         <div className="flex flex-wrap items-center justify-center gap-6 mb-8 p-4 bg-white rounded-lg shadow-sm border">
           <div className="flex items-center gap-2">
             <Shield className="w-5 h-5 text-green-500" />
@@ -122,12 +138,27 @@ export function BrokersList({ initialBrokers = [] }: { initialBrokers?: any[] })
           </div>
         </div>
 
+        {/* Brokers Grid */}
         {filteredBrokers.length > 0 ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredBrokers.map((broker) => (
-              <BrokerCard key={broker.id} broker={broker} />
-            ))}
-          </div>
+          <>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {visibleBrokers.map((broker) => (
+                <BrokerCard key={broker.id} broker={broker} />
+              ))}
+            </div>
+
+            {remainingCount > 0 && (
+              <div className="text-center mt-10">
+                <Button
+                  onClick={() => setVisibleCount((c) => c + LOAD_MORE_STEP)}
+                  variant="outline"
+                  className="px-8"
+                >
+                  المزيد{remainingCount ? ` (متبقي ${remainingCount})` : ""}
+                </Button>
+              </div>
+            )}
+          </>
         ) : (
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
