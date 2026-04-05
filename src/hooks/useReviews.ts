@@ -4,9 +4,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { getSupabaseClient } from '@/lib/supabase';
 import { Review } from '@/types';
 
-export function useReviews(brokerId?: string) {
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(true);
+export function useReviews(brokerId?: string, opts?: { initialReviews?: Review[] }) {
+  const initial = opts?.initialReviews ?? [];
+  const [reviews, setReviews] = useState<Review[]>(initial);
+  const [loading, setLoading] = useState(initial.length === 0);
   const [error, setError] = useState<string | null>(null);
 
   const fetchReviews = useCallback(async () => {
@@ -31,7 +32,9 @@ export function useReviews(brokerId?: string) {
     }
   }, [brokerId]);
 
-  useEffect(() => { fetchReviews(); }, [fetchReviews]);
+  useEffect(() => {
+    if (initial.length === 0) fetchReviews();
+  }, [fetchReviews, initial.length]);
 
   const addReview = useCallback(async (brokerId: string, rating: number, comment: string, userId: string) => {
     try {
